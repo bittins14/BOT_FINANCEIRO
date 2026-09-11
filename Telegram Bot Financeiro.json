@@ -1,0 +1,1439 @@
+{
+  "name": "Telegram Bot Financeiro V7",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "476fb9cc-b021-49ff-be49-8b62f9dbd7dd",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "position": [
+        -1072,
+        288
+      ],
+      "typeVersion": 1.3,
+      "webhookId": "30750361-2358-4001-85fe-f461d37629f8",
+      "credentials": {
+        "telegramApi": {
+          "id": "W66OJddsGYmVmQCY",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1f002af7-61d2-4113-949c-cdfa3c62a100",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "163321ee-c2f6-40f4-bdca-0d60d5788489",
+      "name": "Filter My ID",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -880,
+        288
+      ],
+      "typeVersion": 2.3
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "Você é um assistente financeiro. Seu trabalho é extrair os dados da mensagem e retornar APENAS um JSON válido com:\n- intent: escolha entre ['add_expense', 'add_income', 'query_balance', 'query_debts', 'reset_all', 'reset_expenses', 'reset_income', 'mark_expenses_paid']\n- amount: valor numérico. Para consultas, resets e marcar pago, use 0.\n- category: escolha ESTRITAMENTE uma de [Moradia, Transporte, Alimentação, Lazer, Educação, Saúde, Outros]\n- description: breve descrição da transação ou comando\n- target_month: extraia o mês solicitado no formato YYYY-MM apenas se for query_debts. Se o usuário disser \"este mês\" ou \"mês atual\", use o mês atual.\n- date: YYYY-MM-DD da transação ou comando\n\nRegras de classificação:\n- Se o usuário disser \"adicione ao saldo\", \"recebi\", \"ganhei\", \"entrou dinheiro\", \"salário\", \"pix recebido\" ou \"depósito\", classifique como add_income.\n- Se o usuário disser \"gastei\", \"comprei\", \"despesa\", \"saída\" ou \"paguei algo específico\", classifique como add_expense.\n- Se o usuário perguntar \"qual meu saldo\", \"saldo atual\", \"quanto tenho\", classifique como query_balance.\n- Se o usuário perguntar \"quanto devo\", \"quanto gastei este mês\", \"minhas despesas do mês\", classifique como query_debts.\n- Se o usuário disser \"zerar tudo\", \"zerar meu saldo\", \"limpar tudo\", \"resetar financeiro\", classifique como reset_all.\n- Se o usuário disser \"zerar despesas\", \"limpar despesas\", \"apagar gastos\", classifique como reset_expenses.\n- Se o usuário disser \"zerar receitas\", \"limpar receitas\", \"apagar entradas\", classifique como reset_income.\n- Se o usuário disser \"paguei minhas despesas\", \"marcar despesas como pagas\", \"quitar despesas\", \"registre que as despesas estão pagas\", classifique como mark_expenses_paid.\n\nIMPORTANTE: Retorne APENAS o objeto JSON puro. Não use blocos de código markdown, não use crases e não escreva a palavra json. O seu texto deve começar obrigatoriamente com { e terminar com }."
+        }
+      },
+      "id": "0ec01668-e124-4e01-8f7f-74dfe872ed1e",
+      "name": "Gemini Assistant (Extract)",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        -752,
+        144
+      ],
+      "typeVersion": 3.1
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "auto",
+          "mode": "list",
+          "cachedResultName": "auto"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "id": "5bac82f5-c6dc-4510-aea3-68ac5da76f53",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        -688,
+        400
+      ],
+      "typeVersion": 1.3,
+      "credentials": {
+        "openAiApi": {
+          "id": "XDqq6KXOA4iR0VRl",
+          "name": "OpenAI account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d3307cb3-ed01-4cde-ba1d-70b1484105cb",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "expense",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "b78833cf-139b-468d-bf9a-9a9c78f1d676",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "income",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "8f68fae4-55ed-47e5-a0c2-b822c90eae1c",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "query_balance",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2c83b907-3b68-4693-8f2b-9a7254a08aa0",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "query_debts",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bb3b88d8-11a5-4e1d-aac7-54b4f2d4a001",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "reset_all",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bb3b88d8-11a5-4e1d-aac7-54b4f2d4a002",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "reset_expenses",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bb3b88d8-11a5-4e1d-aac7-54b4f2d4a003",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "=reset_income",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "bb3b88d8-11a5-4e1d-aac7-54b4f2d4a004",
+                    "leftValue": "={{ $json.type }}",
+                    "rightValue": "mark_expenses_paid",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "53fc30d1-274f-42c1-a02b-47099bd47e0b",
+      "name": "Switch Intent",
+      "type": "n8n-nodes-base.switch",
+      "position": [
+        -240,
+        256
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "filters": {
+          "conditions": []
+        },
+        "returnAll": true
+      },
+      "id": "c4e41435-f29c-4dc2-a1da-8e829c9d4c28",
+      "name": "Get Database (Balance)",
+      "type": "n8n-nodes-base.dataTable",
+      "position": [
+        0,
+        384
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "returnAll": true
+      },
+      "id": "eca77917-5549-4086-a38d-e28bd5eb9d13",
+      "name": "Get Database (Debts)",
+      "type": "n8n-nodes-base.dataTable",
+      "position": [
+        0,
+        576
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(item => item.json);\n\nconst time = (row) => {\n  const value = row.createdAt || row.date;\n  return value ? new Date(value).getTime() : 0;\n};\n\nconst latest = (types) => rows\n  .filter(row => types.includes(row.type))\n  .reduce((max, row) => Math.max(max, time(row)), 0);\n\nconst allResetAt = latest(['reset_all']);\nconst incomeResetAt = Math.max(allResetAt, latest(['reset_income']));\nconst expenseResetAt = Math.max(allResetAt, latest(['reset_expenses']));\n\nconst income = rows\n  .filter(row => row.type === 'income' && time(row) > incomeResetAt)\n  .reduce((sum, row) => sum + Number(row.amount || 0), 0);\n\nconst expense = rows\n  .filter(row => row.type === 'expense' && time(row) > expenseResetAt)\n  .reduce((sum, row) => sum + Number(row.amount || 0), 0);\n\nconst balance = income - expense;\n\nreturn [{\n  json: {\n    telegramMessage:\n      `Seu saldo atual é R$ ${balance.toFixed(2)}\\n\\n` +\n      `Receitas: R$ ${income.toFixed(2)}\\n` +\n      `Despesas: R$ ${expense.toFixed(2)}`\n  }\n}];"
+      },
+      "id": "ad2e7991-09c9-4bf8-8eeb-cc70912b572b",
+      "name": "Calculate Balance",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        224,
+        384
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input.all().map(item => item.json);\nconst assistantOutput = $('Parse Assistant JSON').item.json;\nconst targetMonth = assistantOutput.target_month || new Date().toISOString().slice(0, 7);\n\nconst time = (row) => {\n  const value = row.createdAt || row.date;\n  return value ? new Date(value).getTime() : 0;\n};\n};\nconst monthOf = (row) => row.date ? new Date(row.date).toISOString().slice(0, 7) : '';\nconst latest = (types) => rows\n  .filter(row => types.includes(row.type))\n  .reduce((max, row) => Math.max(max, time(row)), 0);\n\nconst resetAt = Math.max(latest(['reset_all']), latest(['reset_expenses']));\nconst paidAt = latest(['mark_expenses_paid']);\n\nconst expenses = rows.filter(row => {\n  const rowTime = time(row);\n  return row.type === 'expense' &&\n    monthOf(row) === targetMonth &&\n    rowTime > resetAt &&\n    rowTime > paidAt;\n});\n\nconst total = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);\n\nreturn [{\n  json: {\n    telegramMessage: `Suas despesas em ${targetMonth} somam R$ ${total.toFixed(2)}.`\n  }\n}];"
+      },
+      "id": "ea3616c4-4193-49bb-b21d-6c8d62b073b0",
+      "name": "Calculate Debts",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        224,
+        576
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.telegramMessage }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "43b9b0ac-7e5b-43c8-90a3-18c262a3ccb2",
+      "name": "Telegram Send",
+      "type": "n8n-nodes-base.telegram",
+      "position": [
+        448,
+        288
+      ],
+      "typeVersion": 1.2,
+      "webhookId": "3140f394-fd6c-42b1-8605-5b80bfb71bb9",
+      "credentials": {
+        "telegramApi": {
+          "id": "W66OJddsGYmVmQCY",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "type": "expense",
+            "amount": "=={{ Number($('Parse Assistant JSON').item.json.amount) }}",
+            "category": "=={{ $('Parse Assistant JSON').item.json.category }}",
+            "description": "=={{ $('Parse Assistant JSON').item.json.description }}",
+            "date": "=={{ $('Parse Assistant JSON').item.json.date }}",
+            "status": "paid"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b250c514-67b6-40ad-a7c0-ba7e638c160d",
+      "name": "Save Expense"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "amount": "=={{ Number($('Parse Assistant JSON').item.json.amount) }}",
+            "type": "income",
+            "category": "=={{ $('Parse Assistant JSON').item.json.category }}",
+            "description": "=={{ $('Parse Assistant JSON').item.json.description }}",
+            "date": "=={{ $('Parse Assistant JSON').item.json.date }}",
+            "status": "paid"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        192
+      ],
+      "id": "ece5a266-3e96-4031-a81f-d89aeab06d71",
+      "name": "Save income"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a83c736a-f08c-4a29-ba4a-562813e28790",
+              "name": "telegramMessage",
+              "value": "={{ 'Despesa salva com sucesso: R$ ' + Number($('Parse Assistant JSON').item.json.amount).toFixed(2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ],
+      "id": "b082de5a-c5e3-4b15-9c38-46f14f4b269e",
+      "name": "mensssagem despesa"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d944ff3c-9266-4649-b75d-e9781b255084",
+              "name": "telegramMessage",
+              "value": "={{ 'Receita adicionada com sucesso: R$ ' + Number($('Parse Assistant JSON').item.json.amount).toFixed(2) }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        192
+      ],
+      "id": "b1f88bd9-ed36-4971-aaf7-60f14226ba15",
+      "name": "menssagem receita"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": 0,
+            "type": "reset_all",
+            "date": "=={{ $now.toISO() }}",
+            "category": "Outros",
+            "description": "Reset geral",
+            "status": "marker"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        768
+      ],
+      "id": "f78d4821-ae69-45ca-96e3-7568b1a7c6d8",
+      "name": "Save Reset All"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "59dc82ff-5021-4478-b7ff-7f4c26b69ead",
+              "name": "telegramMessage",
+              "value": "={{ 'Tudo zerado com sucesso. A partir de agora seu saldo, receitas e despesas começam do zero.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        768
+      ],
+      "id": "26894620-7cda-441a-8702-a0129d542135",
+      "name": "mensagem reset all"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": 0,
+            "type": "reset_expenses",
+            "category": "outros",
+            "description": "Reset de despesas",
+            "date": "=={{ $now.toISO() }}",
+            "status": "marker"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        960
+      ],
+      "id": "4ff199c3-ac1e-4a2d-9c1a-846119ca0384",
+      "name": "Save Reset Expenses"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eade4939-dbba-4516-9009-9d9213c123e7",
+              "name": "telegramMessage",
+              "value": "={{ 'Despesas zeradas com sucesso.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        960
+      ],
+      "id": "ed2279f3-d426-4d4d-9b23-1da6fcc03df8",
+      "name": "mensagem reset despesas"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": 0,
+            "type": "reset_income",
+            "category": "Outros",
+            "description": "Reset de receitas",
+            "date": "=={{ $now.toISO() }}",
+            "status": "marker"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        1152
+      ],
+      "id": "f3f0686b-fe2d-48be-8c9f-363c0fd8ebcc",
+      "name": "Save Reset Income"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f4f77cd6-e990-4abe-a3b0-6af59a009f2a",
+              "name": "telegramMessage",
+              "value": "={{ 'Receitas zeradas com sucesso.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1152
+      ],
+      "id": "740393e4-9265-4929-941c-b2168bbd2573",
+      "name": "mensagem reset receitas"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "RNaoXhByWQPwEKwf",
+          "mode": "list",
+          "cachedResultName": "teste finan",
+          "cachedResultUrl": "/projects/d097WzUkRGoULo46/datatables/RNaoXhByWQPwEKwf"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "amount": 0,
+            "type": "mark_expenses_paid",
+            "category": "Outros",
+            "description": "Despesas pagas",
+            "date": "=={{ $now.toISO() }}",
+            "status": "marker"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "type",
+              "displayName": "type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "amount",
+              "displayName": "amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "description",
+              "displayName": "description",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "optimizeBulk": false
+        }
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        1344
+      ],
+      "id": "8fb78049-f1d5-4ec7-b398-540f7a7d2587",
+      "name": "Save Expenses Paid Marker"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4463473f-dc48-4257-a59c-7a8f63234f54",
+              "name": "telegramMessage",
+              "value": "={{ 'Despesas registradas como pagas com sucesso.' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        1344
+      ],
+      "id": "50fc3193-5034-4c3a-9b39-ba1883ce09dd",
+      "name": "mensagem despesas pagas"
+    },
+    {
+      "parameters": {
+        "jsCode": "const textOutput = $json.output || $json.text || $json.response || $json.answer || $json.message;\n\nlet parsed;\ntry {\n  const cleaned = textOutput.replace(/```json/gi, '').replace(/```/g, '').trim();\n  parsed = JSON.parse(cleaned);\n} catch (error) {\n  throw new Error('Erro ao ler JSON: ' + textOutput);\n}\n\n// Mapeamento do intent para o tipo de dado\nconst intentToType = {\n  add_expense: 'expense',\n  add_income: 'income',\n  reset_all: 'reset_all',\n  reset_expenses: 'reset_expenses',\n  reset_income: 'reset_income',\n  mark_expenses_paid: 'mark_expenses_paid'\n};\n\n// Retorna APENAS as colunas que existem na tabela\nreturn [{\n  json: {\n    type: intentToType[parsed.intent] || parsed.intent,\n    amount: Number(parsed.amount) || 0,\n    category: parsed.category || 'Outros',\n    description: parsed.description || '',\n    date: parsed.date || new Date().toISOString().slice(0, 10),\n    status: 'paid'\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        288
+      ],
+      "id": "dcd8afb9-9e26-4387-b6d1-e9031d184ced",
+      "name": "Parse Assistant JSON"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter My ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter My ID": {
+      "main": [
+        [
+          {
+            "node": "Gemini Assistant (Extract)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Gemini Assistant (Extract)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Assistant (Extract)": {
+      "main": [
+        [
+          {
+            "node": "Parse Assistant JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Intent": {
+      "main": [
+        [
+          {
+            "node": "Save Expense",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save income",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Database (Balance)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get Database (Debts)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Reset All",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Reset Expenses",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Reset Income",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Expenses Paid Marker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Database (Balance)": {
+      "main": [
+        [
+          {
+            "node": "Calculate Balance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Database (Debts)": {
+      "main": [
+        [
+          {
+            "node": "Calculate Debts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Balance": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Debts": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Expense": {
+      "main": [
+        [
+          {
+            "node": "mensssagem despesa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save income": {
+      "main": [
+        [
+          {
+            "node": "menssagem receita",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensssagem despesa": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "menssagem receita": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Reset All": {
+      "main": [
+        [
+          {
+            "node": "mensagem reset all",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensagem reset all": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Reset Expenses": {
+      "main": [
+        [
+          {
+            "node": "mensagem reset despesas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensagem reset despesas": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Reset Income": {
+      "main": [
+        [
+          {
+            "node": "mensagem reset receitas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensagem reset receitas": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Expenses Paid Marker": {
+      "main": [
+        [
+          {
+            "node": "mensagem despesas pagas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mensagem despesas pagas": {
+      "main": [
+        [
+          {
+            "node": "Telegram Send",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Assistant JSON": {
+      "main": [
+        [
+          {
+            "node": "Switch Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "081abeff-2982-4bd2-8278-ecf75d17d817",
+  "meta": {
+    "instanceId": "1fbba8eeff3567a133a9191f67440911c8628f12ab58f3fef8d823dbc05ed368"
+  },
+  "nodeGroups": [],
+  "id": "M8np5jYko6ePbzPK",
+  "tags": []
+}

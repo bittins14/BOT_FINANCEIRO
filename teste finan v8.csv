@@ -1,0 +1,6 @@
+﻿id,type,amount,category,description,date,status,createdAt,updatedAt
+1,income,0,Outros,Exemplo Inicial,2026-09-10T12:00:00.000Z,paid,2026-09-10T16:28:30.379Z,2026-09-10T16:28:30.379Z
+2,,,,,,,2026-09-10T20:22:14.778Z,2026-09-10T20:22:14.778Z
+3,,,,,,,2026-09-10T20:24:13.417Z,2026-09-10T20:24:13.417Z
+4,income,500,Outros,Adição ao saldo,2024-05-24T04:00:00.000Z,paid,2026-09-11T23:28:48.252Z,2026-09-11T23:28:48.252Z
+5,expense,200,Lazer,jogos,2023-10-27T04:00:00.000Z,paid,2026-09-11T23:31:31.105Z,2026-09-11T23:31:31.105Z
