@@ -193,6 +193,6 @@ O arquivo schema_tabela_n8n.csv na pasta do projeto contem a estrutura da tabela
 
 | Arquivo                                        | Descricao                              |
 |------------------------------------------------|----------------------------------------|
-| Nck0h1ENZurB7HPS-Telegram_Bot_Financeiro.json  | Workflow do n8n para importacao        |
+| Telegram Bot Financeiro.json                   | Workflow do n8n para importacao        |
 | schema_tabela_n8n.csv                          | Schema do banco de dados para backup   |
 | README.md                                      | Este arquivo de documentacao           |
